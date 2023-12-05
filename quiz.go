@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"time"
 )
 
 type item struct {
@@ -37,16 +38,28 @@ func (l *List) Load(filename string) error {
 
 func (l *List) Play() {
 	var correct int = 0
-	var wrong int = 0
-	for _, line := range *l {
-		fmt.Printf("Problem: %s\n", line.question)
-		var answer string
-		fmt.Scanf("%s", &answer)
-		if answer == line.answer {
-			correct++
-		} else {
-			wrong++
+	timer := time.NewTimer(5 * time.Second)
+
+	func() {
+		for _, line := range *l {
+			fmt.Printf("Problem: %s\n", line.question)
+			ansChan := make(chan string)
+
+			go func() {
+				var answer string
+				fmt.Scanf("%s", &answer)
+				ansChan <- answer
+			}()
+
+			select {
+			case <-timer.C:
+				return
+			case ans := <-ansChan:
+				if ans == line.answer {
+					correct++
+				}
+			}
 		}
-	}
+	}()
 	fmt.Printf("%d correct answer out of %d\n", correct, len(*l))
 }
