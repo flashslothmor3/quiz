@@ -36,9 +36,9 @@ func (l *List) Load(filename string) error {
 	return nil
 }
 
-func (l *List) Play() {
+func (l *List) Play(limit int) {
 	var correct int = 0
-	timer := time.NewTimer(5 * time.Second)
+	timer := time.NewTimer(time.Duration(limit) * time.Second)
 
 	func() {
 		for _, line := range *l {
